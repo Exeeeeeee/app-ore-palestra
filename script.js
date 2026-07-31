@@ -2,6 +2,7 @@ let accessToken = null;
 let tokenClient = null;
 
 // 🔧 Configurazione: modifica questi valori secondo le tue esigenze
+const CALENDAR_ID = "c8d1d39aff570576e2b85a4087510ed53d8e9e25bf510eadd6ddc1ba6e743ab1@group.calendar.google.com";
 const NOME_EVENTO = "Palestra"; // il titolo esatto da cercare
 const TARIFFA_ORARIA = 12; // €/ora, modificala qui
 
@@ -26,7 +27,7 @@ async function caricaMese() {
   const inizioMese = new Date(oggi.getFullYear(), oggi.getMonth(), 1).toISOString();
   const fineMese = new Date(oggi.getFullYear(), oggi.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${inizioMese}&timeMax=${fineMese}&singleEvents=true&orderBy=startTime&maxResults=250`;
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?timeMin=${inizioMese}&timeMax=${fineMese}&singleEvents=true&orderBy=startTime&maxResults=250`;
 
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
