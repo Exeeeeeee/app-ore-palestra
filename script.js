@@ -6,8 +6,8 @@ const CALENDAR_ID = "c8d1d39aff570576e2b85a4087510ed53d8e9e25bf510eadd6ddc1ba6e7
 
 const TARIFFE = {
   "Palestra": 12,
-  "Evento": 15,
-  "Montaggio": 18,
+  "Lezione JJ": -10,
+  "JJ BAMBINI": 15,
 };
 
 const MESI_IT = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
