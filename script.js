@@ -1,10 +1,12 @@
 let accessToken = null;
 let tokenClient = null;
 
-// 🔧 Configurazione: modifica questi valori secondo le tue esigenze
-const CALENDAR_ID = "c8d1d39aff570576e2b85a4087510ed53d8e9e25bf510eadd6ddc1ba6e743ab1@group.calendar.google.com";
-const NOME_EVENTO = "Palestra"; // il titolo esatto da cercare
-const TARIFFA_ORARIA = 12; // €/ora, modificala qui
+// 🔧 Configurazione: aggiungi qui tutti i tipi di lavoro e la relativa tariffa
+const TARIFFE = {
+  "Palestra": 12,
+  "Evento": 15,
+  "Montaggio": 18,
+};
 
 window.addEventListener("load", () => {
   tokenClient = google.accounts.oauth2.initTokenClient({
@@ -33,29 +35,46 @@ async function caricaMese() {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const data = await res.json();
-  console.log("Eventi del mese:", data.items); //Riga aggiunta
+  console.log("Eventi del mese:", data.items);
 
-  const eventi = (data.items || []).filter(e => e.summary === NOME_EVENTO);
+  const eventi = (data.items || []).filter(e => TARIFFE.hasOwnProperty(e.summary));
 
   let totaleOre = 0;
+  let totaleEuro = 0;
   let righeTabella = "";
+
+  // Totali per tipo di lavoro (utile per il riepilogo)
+  const totaliPerTipo = {};
 
   eventi.forEach(e => {
     const inizio = new Date(e.start.dateTime);
     const fine = new Date(e.end.dateTime);
     const ore = (fine - inizio) / (1000 * 60 * 60);
-    totaleOre += ore;
+    const tariffa = TARIFFE[e.summary];
+    const guadagno = ore * tariffa;
 
-    const data = inizio.toLocaleDateString("it-IT");
-    righeTabella += `<tr><td>${data}</td><td>${ore.toFixed(2)} h</td><td>${(ore * TARIFFA_ORARIA).toFixed(2)} €</td></tr>`;
+    totaleOre += ore;
+    totaleEuro += guadagno;
+
+    totaliPerTipo[e.summary] = (totaliPerTipo[e.summary] || 0) + ore;
+
+    const dataFormattata = inizio.toLocaleDateString("it-IT");
+    righeTabella += `<tr><td>${dataFormattata}</td><td>${e.summary}</td><td>${ore.toFixed(2)} h</td><td>${guadagno.toFixed(2)} €</td></tr>`;
   });
 
-  const totaleEuro = totaleOre * TARIFFA_ORARIA;
+  // Riepilogo per tipo di lavoro
+  let riepilogoTipo = "<ul>";
+  for (const tipo in totaliPerTipo) {
+    riepilogoTipo += `<li>${tipo}: ${totaliPerTipo[tipo].toFixed(2)} h</li>`;
+  }
+  riepilogoTipo += "</ul>";
 
   document.getElementById("output").innerHTML = `
     <h2>Totale mese: ${totaleOre.toFixed(2)} ore — ${totaleEuro.toFixed(2)} €</h2>
+    <h3>Riepilogo per tipo:</h3>
+    ${riepilogoTipo}
     <table border="1" cellpadding="6" style="width:100%; border-collapse: collapse;">
-      <tr><th>Data</th><th>Ore</th><th>Guadagno</th></tr>
+      <tr><th>Data</th><th>Tipo</th><th>Ore</th><th>Guadagno</th></tr>
       ${righeTabella}
     </table>
   `;
