@@ -32,6 +32,7 @@ async function caricaMese() {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const data = await res.json();
+  console.log("Eventi del mese:", data.items); //Riga aggiunta
 
   const eventi = (data.items || []).filter(e => e.summary === NOME_EVENTO);
 
