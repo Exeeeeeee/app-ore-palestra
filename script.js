@@ -1,7 +1,9 @@
 let accessToken = null;
 let tokenClient = null;
 
-// 🔧 Configurazione: aggiungi qui tutti i tipi di lavoro e la relativa tariffa
+// 🔧 Configurazione
+const CALENDAR_ID = "c8d1d39aff570576e2b85a4087510ed53d8e9e25bf510eadd6ddc1ba6e743ab1@group.calendar.google.com";
+
 const TARIFFE = {
   "Palestra": 12,
   "Evento": 15,
