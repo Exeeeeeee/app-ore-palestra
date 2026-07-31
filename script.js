@@ -10,6 +10,12 @@ const TARIFFE = {
   "Montaggio": 18,
 };
 
+const MESI_IT = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+
+// Mese/anno attualmente visualizzati
+let annoSelezionato = new Date().getFullYear();
+let meseSelezionato = new Date().getMonth(); // 0-11
+
 window.addEventListener("load", () => {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
@@ -17,19 +23,41 @@ window.addEventListener("load", () => {
     callback: (response) => {
       accessToken = response.access_token;
       document.getElementById("status").innerText = "Connesso!";
-      caricaMese();
+      aggiornaVista();
     },
   });
 
   document.getElementById("login-btn").addEventListener("click", () => {
     tokenClient.requestAccessToken();
   });
+
+  document.getElementById("prev-btn").addEventListener("click", () => {
+    meseSelezionato--;
+    if (meseSelezionato < 0) {
+      meseSelezionato = 11;
+      annoSelezionato--;
+    }
+    aggiornaVista();
+  });
+
+  document.getElementById("next-btn").addEventListener("click", () => {
+    meseSelezionato++;
+    if (meseSelezionato > 11) {
+      meseSelezionato = 0;
+      annoSelezionato++;
+    }
+    aggiornaVista();
+  });
 });
 
+function aggiornaVista() {
+  document.getElementById("mese-corrente").innerText = `${MESI_IT[meseSelezionato]} ${annoSelezionato}`;
+  if (accessToken) caricaMese();
+}
+
 async function caricaMese() {
-  const oggi = new Date();
-  const inizioMese = new Date(oggi.getFullYear(), oggi.getMonth(), 1).toISOString();
-  const fineMese = new Date(oggi.getFullYear(), oggi.getMonth() + 1, 0, 23, 59, 59).toISOString();
+  const inizioMese = new Date(annoSelezionato, meseSelezionato, 1).toISOString();
+  const fineMese = new Date(annoSelezionato, meseSelezionato + 1, 0, 23, 59, 59).toISOString();
 
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?timeMin=${inizioMese}&timeMax=${fineMese}&singleEvents=true&orderBy=startTime&maxResults=250`;
 
@@ -37,15 +65,12 @@ async function caricaMese() {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const data = await res.json();
-  console.log("Eventi del mese:", data.items);
 
   const eventi = (data.items || []).filter(e => TARIFFE.hasOwnProperty(e.summary));
 
   let totaleOre = 0;
   let totaleEuro = 0;
   let righeTabella = "";
-
-  // Totali per tipo di lavoro (utile per il riepilogo)
   const totaliPerTipo = {};
 
   eventi.forEach(e => {
@@ -57,14 +82,12 @@ async function caricaMese() {
 
     totaleOre += ore;
     totaleEuro += guadagno;
-
     totaliPerTipo[e.summary] = (totaliPerTipo[e.summary] || 0) + ore;
 
     const dataFormattata = inizio.toLocaleDateString("it-IT");
     righeTabella += `<tr><td>${dataFormattata}</td><td>${e.summary}</td><td>${ore.toFixed(2)} h</td><td>${guadagno.toFixed(2)} €</td></tr>`;
   });
 
-  // Riepilogo per tipo di lavoro
   let riepilogoTipo = "<ul>";
   for (const tipo in totaliPerTipo) {
     riepilogoTipo += `<li>${tipo}: ${totaliPerTipo[tipo].toFixed(2)} h</li>`;
