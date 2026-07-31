@@ -1,17 +1,20 @@
 let accessToken = null;
+let tokenClient = null;
 
-const tokenClient = google.accounts.oauth2.initTokenClient({
-  client_id: GOOGLE_CLIENT_ID,
-  scope: "https://www.googleapis.com/auth/calendar.readonly",
-  callback: (response) => {
-    accessToken = response.access_token;
-    document.getElementById("status").innerText = "Connesso!";
-    testCalendarAccess();
-  },
-});
+window.addEventListener("load", () => {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/calendar.readonly",
+    callback: (response) => {
+      accessToken = response.access_token;
+      document.getElementById("status").innerText = "Connesso!";
+      testCalendarAccess();
+    },
+  });
 
-document.getElementById("login-btn").addEventListener("click", () => {
-  tokenClient.requestAccessToken();
+  document.getElementById("login-btn").addEventListener("click", () => {
+    tokenClient.requestAccessToken();
+  });
 });
 
 async function testCalendarAccess() {
